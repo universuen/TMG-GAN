@@ -4,6 +4,7 @@ from . import (
     classifier_config,
     logging_config,
     path_config,
+    rbm_config,
 )
 
 # random seed

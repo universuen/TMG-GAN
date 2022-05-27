@@ -8,14 +8,12 @@ class ClassifierModel(Model):
     def __init__(self, in_features: int, out_features: int):
         super().__init__()
         self.main_model = nn.Sequential(
-            nn.Linear(in_features, 128),
-            nn.LeakyReLU(0.2),
-            nn.Linear(128, 256),
-            nn.LeakyReLU(0.2),
-            nn.Linear(256, 128),
-            nn.LeakyReLU(0.2),
-            nn.Linear(128, 32),
-            nn.LeakyReLU(0.2),
+            nn.Linear(in_features, 100),
+            nn.ReLU(),
+            nn.Linear(100, 64),
+            nn.ReLU(),
+            nn.Linear(64, 32),
+            nn.ReLU(),
         )
         self.last_layer = nn.Sequential(
             nn.Linear(32, out_features),

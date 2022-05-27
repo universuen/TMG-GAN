@@ -1,7 +1,7 @@
 import torch
 from torch.nn.functional import cross_entropy
 from torch.optim import Adam
-from sklearn.metrics import accuracy_score
+from sklearn import metrics
 
 from src import config, datasets, logger, models
 
@@ -9,10 +9,13 @@ from src import config, datasets, logger, models
 class Classifier:
     def __init__(self, name: str):
         self.name = f'{name}_classifier'
-        self.model = models.ClassifierModel(122, 5).to(config.device)
+        self.model = models.ClassifierModel(datasets.feature_num, datasets.label_num).to(config.device)
         self.logger = logger.Logger(name)
         self.metrics = {
-            'Acc': 0.0,
+            'Precision': 0.0,
+            'Recall': 0.0,
+            'F1': 0.0,
+            'Accuracy': 0.0,
         }
 
     def fit(self, dataset: datasets.TrDataset):
@@ -20,10 +23,10 @@ class Classifier:
         self.logger.info('Started training')
         self.logger.debug(f'Using device: {config.device}')
         optimizer = Adam(
-                params=self.model.parameters(),
-                lr=config.classifier_config.lr,
-                betas=(0.5, 0.9),
-            )
+            params=self.model.parameters(),
+            lr=config.classifier_config.lr,
+            betas=(0.5, 0.9),
+        )
         x, labels = dataset.features, dataset.labels
         for _ in range(config.classifier_config.epochs):
             self.model.zero_grad()
@@ -48,9 +51,27 @@ class Classifier:
             return torch.argmax(prob, dim=1)
 
     def test(self, dataset: datasets.TeDataset):
-        self.metrics['Acc'] = accuracy_score(
-            dataset.labels.cpu().numpy(),
-            self.predict(dataset.features).cpu().numpy()
+        predicted_labels = self.predict(dataset.features).cpu()
+        real_labels = dataset.labels.cpu()
+        self.metrics['Precision'] = metrics.precision_score(
+            y_true=real_labels,
+            y_pred=predicted_labels,
+            average='macro',
+            zero_division=0,
         )
-
-
+        self.metrics['Recall'] = metrics.recall_score(
+            y_true=real_labels,
+            y_pred=predicted_labels,
+            average='macro',
+            zero_division=0,
+        )
+        self.metrics['F1'] = metrics.f1_score(
+            y_true=real_labels,
+            y_pred=predicted_labels,
+            average='macro',
+            zero_division=0,
+        )
+        self.metrics['Accuracy'] = metrics.accuracy_score(
+            y_true=real_labels,
+            y_pred=predicted_labels,
+        )
