@@ -1,6 +1,7 @@
 from src import (
     config,
     datasets,
+    models,
 )
 
 from src.logger import Logger

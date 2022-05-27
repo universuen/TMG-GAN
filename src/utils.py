@@ -26,7 +26,7 @@ def prepare_datasets():
     features, labels = make_classification(
         n_samples=100000,
         n_features=100,
-        n_informative=80,
+        n_informative=90,
         n_classes=10,
     )
     src.datasets.feature_num = 100

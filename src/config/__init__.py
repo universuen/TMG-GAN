@@ -5,6 +5,7 @@ from . import (
     logging_config,
     path_config,
     rbm_config,
+    gan_config,
 )
 
 # random seed
