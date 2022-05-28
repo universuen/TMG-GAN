@@ -9,15 +9,11 @@ class CDModel(Model):
     def __init__(self, in_features: int, label_num: int):
         super().__init__()
         self.main_model = nn.Sequential(
-            spectral_norm(nn.Linear(in_features, 64)),
+            spectral_norm(nn.Linear(in_features, 512)),
             nn.LeakyReLU(0.2),
-            spectral_norm(nn.Linear(64, 128)),
+            spectral_norm(nn.Linear(512, 128)),
             nn.LeakyReLU(0.2),
-            spectral_norm(nn.Linear(128, 256)),
-            nn.LeakyReLU(0.2),
-            spectral_norm(nn.Linear(256, 64)),
-            nn.LeakyReLU(0.2),
-            spectral_norm(nn.Linear(64, 32)),
+            spectral_norm(nn.Linear(128, 32)),
             nn.LeakyReLU(0.2),
             spectral_norm(nn.Linear(32, 16)),
             nn.LeakyReLU(0.2),

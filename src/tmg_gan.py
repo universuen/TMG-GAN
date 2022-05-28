@@ -20,7 +20,7 @@ class TMGGAN:
 
     def fit(self, dataset: src.datasets.TrDataset):
         assert min(dataset.labels) == 0
-        assert max(dataset.labels) == len(self.generators) - 1
+        assert max(dataset.labels).item() == len(self.generators) - 1
 
         self.logger.info('Started training DBN')
         self.dbn.fit(dataset)
@@ -56,7 +56,7 @@ class TMGGAN:
 
                 fake_x = []
                 for label in self.samples.keys():
-                    fake_x.append(self.generators[label].make_samples(src.config.gan_config.batch_size))
+                    fake_x.append(self.generators[label].make_samples(src.config.gan_config.batch_size).detach())
                 fake_x = torch.cat(fake_x)
 
                 real_labels = []
