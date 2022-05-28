@@ -2,7 +2,7 @@ import random
 
 import numpy as np
 import torch
-from sklearn.datasets import make_classification
+from sklearn.datasets import make_classification, make_blobs
 from sklearn.preprocessing import minmax_scale
 from sklearn.model_selection import train_test_split
 
@@ -23,14 +23,9 @@ def set_random_state(seed: int = None) -> None:
 
 def prepare_datasets():
     set_random_state()
-    features, labels = make_classification(
-        n_samples=100000,
-        n_features=100,
-        n_informative=90,
-        n_classes=10,
-    )
+    features, labels = make_blobs(1000, n_features=100, centers=5)
     src.datasets.feature_num = 100
-    src.datasets.label_num = 10
+    src.datasets.label_num = 5
     features = minmax_scale(features)
     features = torch.tensor(features, dtype=torch.float)
     labels = torch.tensor(labels).type(torch.LongTensor)
@@ -40,3 +35,9 @@ def prepare_datasets():
         test_size=0.1,
     )
     src.datasets.tr_features, src.datasets.te_features, src.datasets.tr_labels, src.datasets.te_labels = temp
+
+
+def turn_on_test_mode():
+    src.config.gan_config.epochs = 3
+    src.config.gan_config.batch_size = 100
+    src.config.classifier_config.epochs = 3

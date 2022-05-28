@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+from torch.nn.utils.parametrizations import spectral_norm
 
 from src.models._model import Model
 
@@ -8,14 +9,18 @@ class CDModel(Model):
     def __init__(self, in_features: int, label_num: int):
         super().__init__()
         self.main_model = nn.Sequential(
-            nn.Linear(in_features, 128),
-            nn.ReLU(),
-            nn.Linear(128, 64),
-            nn.ReLU(),
-            nn.Linear(64, 32),
-            nn.ReLU(),
-            nn.Linear(32, 16),
-            nn.ReLU(),
+            spectral_norm(nn.Linear(in_features, 64)),
+            nn.LeakyReLU(0.2),
+            spectral_norm(nn.Linear(64, 128)),
+            nn.LeakyReLU(0.2),
+            spectral_norm(nn.Linear(128, 256)),
+            nn.LeakyReLU(0.2),
+            spectral_norm(nn.Linear(256, 64)),
+            nn.LeakyReLU(0.2),
+            spectral_norm(nn.Linear(64, 32)),
+            nn.LeakyReLU(0.2),
+            spectral_norm(nn.Linear(32, 16)),
+            nn.LeakyReLU(0.2),
         )
         self.hidden_status: torch.Tensor = None
         self.c_last_layer = nn.Sequential(
@@ -23,7 +28,7 @@ class CDModel(Model):
             nn.Softmax(dim=1),
         )
         self.d_last_layer = nn.Sequential(
-            nn.Linear(16, 1),
+            spectral_norm(nn.Linear(16, 1)),
         )
 
     def c_forward(self, x: torch.Tensor) -> torch.Tensor:
