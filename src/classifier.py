@@ -1,16 +1,23 @@
 import torch
+import pytorch_lightning as pl
 from torch.nn.functional import cross_entropy
 from torch.optim import Adam
+from torch.utils.data import DataLoader
 from sklearn import metrics
+from tqdm import tqdm
 
 from src import config, datasets, logger, models
 
 
 class Classifier:
-    def __init__(self, name: str):
-        self.name = f'{name}_classifier'
-        self.model = models.ClassifierModel(datasets.feature_num, datasets.label_num).to(config.device)
-        self.logger = logger.Logger(name)
+    def __init__(self):
+        self.model = models.ClassifierModel(datasets.feature_num, datasets.label_num)
+        self.trainer = pl.Trainer(
+            max_epochs=config.classifier_config.epochs,
+            accelerator=config.device,
+            devices=1,
+        )
+        self.logger = logger.Logger(self.__class__.__name__)
         self.metrics = {
             'Precision': 0.0,
             'Recall': 0.0,
@@ -19,38 +26,21 @@ class Classifier:
         }
 
     def fit(self, dataset: datasets.TrDataset):
-        self.model.train()
-        self.logger.info('Started training')
-        self.logger.debug(f'Using device: {config.device}')
-        optimizer = Adam(
-            params=self.model.parameters(),
-            lr=config.classifier_config.lr,
-            betas=(0.5, 0.9),
+        self.trainer.fit(
+            model=self.model,
+            train_dataloaders=DataLoader(
+                dataset=dataset,
+                batch_size=config.classifier_config.batch_size,
+                num_workers=4,
+            ),
         )
-        x, labels = dataset.features, dataset.labels
-        for _ in range(config.classifier_config.epochs):
-            self.model.zero_grad()
-            prediction = self.model(x)
-            loss = cross_entropy(
-                input=prediction,
-                target=labels,
-            )
-            loss.backward()
-            optimizer.step()
 
-        self.model.eval()
-        self.logger.info('Finished training')
-
-    def predict(self, x: torch.Tensor, use_prob: bool = False) -> torch.Tensor:
-        x = x.to(config.device)
-        with torch.no_grad():
-            prob = self.model(x)
-        if use_prob:
-            return prob.squeeze(dim=1).detach()
-        else:
-            return torch.argmax(prob, dim=1)
+    def predict(self, x: torch.Tensor) -> torch.Tensor:
+        return torch.argmax(self.model(x), dim=1)
 
     def test(self, dataset: datasets.TeDataset):
+        if self.model is None:
+            self.model = models.ClassifierModel(datasets.feature_num, datasets.label_num)
         predicted_labels = self.predict(dataset.features).cpu()
         real_labels = dataset.labels.cpu()
         self.metrics['Precision'] = metrics.precision_score(

@@ -6,3 +6,4 @@ tests/general_test.py
 
 
 __pycache__/
+tests/lightning_logs/

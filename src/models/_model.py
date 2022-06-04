@@ -1,18 +1,21 @@
 import torch
+import pytorch_lightning as pl
 from torch import nn
 
 
-class Model(nn.Module):
+class Model(pl.LightningModule):
     def __init__(self):
         super().__init__()
-        self.model: nn.Module = None
         self.initialized = False
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if not self.initialized:
             self.apply(self._init_weights)
             self.initialized = True
-        return self.model(x)
+        return self._forward(x)
+
+    def _forward(self, x: torch.Tensor) -> torch.Tensor:
+        raise NotImplementedError
 
     @staticmethod
     def _init_weights(layer: nn.Module):

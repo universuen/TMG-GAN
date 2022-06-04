@@ -9,18 +9,25 @@ class CDModel(Model):
     def __init__(self, in_features: int, label_num: int):
         super().__init__()
         self.main_model = nn.Sequential(
-            spectral_norm(nn.Linear(in_features, 512)),
-            nn.LeakyReLU(0.2),
-            spectral_norm(nn.Linear(512, 128)),
-            nn.LeakyReLU(0.2),
-            spectral_norm(nn.Linear(128, 32)),
-            nn.LeakyReLU(0.2),
-            spectral_norm(nn.Linear(32, 16)),
-            nn.LeakyReLU(0.2),
+            # spectral_norm(nn.Linear(in_features, 256)),
+            # nn.LeakyReLU(0.2),
+            # spectral_norm(nn.Linear(256, 128)),
+            # nn.LeakyReLU(0.2),
+            # spectral_norm(nn.Linear(128, 32)),
+            # nn.LeakyReLU(0.2),
+            # spectral_norm(nn.Linear(32, 16)),
+            # nn.LeakyReLU(0.2),
+            nn.Linear(in_features, 100),
+            nn.ReLU(),
+            nn.Linear(100, 64),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(64, 32),
+            nn.ReLU(),
         )
         self.hidden_status: torch.Tensor = None
         self.c_last_layer = nn.Sequential(
-            nn.Linear(16, label_num),
+            nn.Linear(32, label_num),
             nn.Softmax(dim=1),
         )
         self.d_last_layer = nn.Sequential(

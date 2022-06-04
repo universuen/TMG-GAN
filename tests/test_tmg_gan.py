@@ -18,8 +18,13 @@ if __name__ == '__main__':
     x = tmg_gan.dbn.extract(src.datasets.TrDataset().features).cpu()
     y = src.datasets.TrDataset().labels.cpu()
 
-    x = torch.cat([x, tmg_gan.make_samples(0, 100).cpu().detach()])
-    y = torch.cat([y, torch.full([100], -1)])
+    x = torch.cat([x, tmg_gan.make_samples(1, 10000).cpu().detach()])
+    y = torch.cat([y, torch.full([10000], -1)])
+    x = torch.cat([x, tmg_gan.make_samples(2, 10000).cpu().detach()])
+    y = torch.cat([y, torch.full([10000], -2)])
+    x = torch.cat([x, tmg_gan.make_samples(3, 10000).cpu().detach()])
+    y = torch.cat([y, torch.full([10000], -3)])
+
     embedded_x = TSNE(
         learning_rate='auto',
         init='random',

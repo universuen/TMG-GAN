@@ -64,6 +64,11 @@ class TMGGAN:
                     real_labels.extend([label for _ in range(src.config.gan_config.batch_size)])
                 real_labels = torch.tensor(real_labels, device=src.config.device)
 
+                fake_labels = []
+                for label in self.samples.keys():
+                    fake_labels.extend([label for _ in range(src.config.gan_config.batch_size)])
+                fake_labels = torch.tensor(fake_labels, device=src.config.device)
+
                 self.cd.zero_grad()
 
                 prediction_real = self.cd.d_forward(real_x)
@@ -72,13 +77,13 @@ class TMGGAN:
                 prediction_fake = self.cd.d_forward(fake_x)
                 loss_fake = prediction_fake.mean()
 
-                predicted_labels = self.cd.c_forward(real_x)
-                loss_label = cross_entropy(
+                predicted_labels = self.cd.c_forward(torch.cat([real_x, fake_x]))
+                label_loss = cross_entropy(
                     input=predicted_labels,
-                    target=real_labels,
+                    target=torch.cat([real_labels, fake_labels])
                 )
 
-                loss = loss_real + loss_fake + loss_label
+                loss = loss_real + loss_fake + label_loss
                 loss.backward()
                 cd_optimizer.step()
 
@@ -87,18 +92,29 @@ class TMGGAN:
                 hidden_statuses = []
 
                 for label in self.samples.keys():
+
                     self.generators[label].zero_grad()
                     fake_x = self.generators[label].make_samples(src.config.gan_config.batch_size)
                     prediction = self.cd.d_forward(fake_x)
-                    loss = loss - prediction.mean()
+                    loss += - prediction.mean()
+
+                    predicted_labels = self.cd.c_forward(fake_x)
+                    real_labels = torch.tensor(
+                        data=[label for ___ in range(src.config.gan_config.batch_size)],
+                        device=src.config.device
+                    )
+                    loss += cross_entropy(
+                        input=predicted_labels,
+                        target=real_labels,
+                    )
                     hidden_statuses.append(self.cd.hidden_status.flatten())
 
-                for i in range(len(self.generators)):
-                    for j in range(len(self.generators)):
-                        if i == j:
-                            continue
-                        else:
-                            loss += torch.dot(hidden_statuses[i], hidden_statuses[j])
+                # for i in range(len(self.generators)):
+                #     for j in range(len(self.generators)):
+                #         if i == j:
+                #             continue
+                #         else:
+                #             loss += torch.dot(hidden_statuses[i], hidden_statuses[j])
                 loss.backward()
                 for i in g_optimizers:
                     i.step()
