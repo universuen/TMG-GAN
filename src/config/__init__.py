@@ -4,7 +4,6 @@ from . import (
     classifier_config,
     logging_config,
     path_config,
-    rbm_config,
     gan_config,
 )
 

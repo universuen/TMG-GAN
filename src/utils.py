@@ -23,24 +23,7 @@ def set_random_state(seed: int = None) -> None:
 
 
 def prepare_datasets():
-    tr_features = pd.read_csv(src.config.path_config.datasets / 'x_train.csv')
-    tr_features = torch.tensor(tr_features.values, dtype=torch.float)
-    src.datasets.tr_features = tr_features
-
-    tr_labels = pd.read_csv(src.config.path_config.datasets / 'y_train.csv')
-    tr_labels = torch.tensor(tr_labels.values, dtype=torch.float).squeeze().argmax(1).type(torch.LongTensor)
-    src.datasets.tr_labels = tr_labels
-
-    te_features = pd.read_csv(src.config.path_config.datasets / 'x_test.csv')
-    te_features = torch.tensor(te_features.values, dtype=torch.float)
-    src.datasets.te_features = te_features
-
-    te_labels = pd.read_csv(src.config.path_config.datasets / 'y_test.csv')
-    te_labels = torch.tensor(te_labels.values, dtype=torch.float).squeeze().argmax(1).type(torch.LongTensor)
-    src.datasets.te_labels = te_labels
-
-    src.datasets.feature_num = len(tr_features[0])
-    src.datasets.label_num = max(tr_labels).item() + 1
+    pass
 
     # src.datasets.feature_num = 100
     # src.datasets.label_num = 5
@@ -58,6 +41,5 @@ def prepare_datasets():
 
 def turn_on_test_mode():
     print('*************TEST MODE IS ON!*************')
-    src.config.gan_config.epochs = 3
-    src.config.gan_config.batch_size = 100
-    src.config.classifier_config.epochs = 3
+    src.config.gan_config.epochs = 1
+    src.config.classifier_config.epochs = 1

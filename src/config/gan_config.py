@@ -1,5 +1,5 @@
-epochs: int = 1000
-batch_size: int = 32
+epochs: int = 5
+batch_size: int = 128
 
 z_size: int = 128
 
