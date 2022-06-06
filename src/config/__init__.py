@@ -18,6 +18,6 @@ device: str = 'auto'
 
 if device == 'auto':
     if torch.cuda.is_available():
-        device = 'gpu'
+        device = 'cuda'
     else:
         device = 'cpu'

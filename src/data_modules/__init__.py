@@ -1,2 +1,0 @@
-from .classifier_data_module import ClassifierDataModule
-from .gan_data_module import GANDataModule
