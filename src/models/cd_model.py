@@ -2,10 +2,8 @@ import torch
 from torch import nn
 from torch.nn.utils.parametrizations import spectral_norm
 
-from src.models._model import Model
 
-
-class CDModel(Model):
+class CDModel(nn.Module):
     def __init__(self, in_features: int, label_num: int):
         super().__init__()
         self.main_model = nn.Sequential(
@@ -26,21 +24,18 @@ class CDModel(Model):
         self.d_last_layer = nn.Sequential(
             spectral_norm(nn.Linear(16, 1)),
         )
+        self.apply(self._init_weights)
 
-    def c_forward(self, x: torch.Tensor) -> torch.Tensor:
-        if not self.initialized:
-            self.apply(self._init_weights)
-            self.initialized = True
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         x = self.main_model(x)
-        self.hidden_status = x
-        x = self.c_last_layer(x)
-        return x
+        return self.d_last_layer(x), self.c_last_layer(x)
 
-    def d_forward(self, x: torch.Tensor) -> torch.Tensor:
-        if not self.initialized:
-            self.apply(self._init_weights)
-            self.initialized = True
-        x = self.main_model(x)
-        self.hidden_status = x
-        x = self.d_last_layer(x)
-        return x
+    @staticmethod
+    def _init_weights(layer: nn.Module):
+        if type(layer) == nn.Linear:
+            nn.init.normal_(layer.weight, 0.0, 0.02)
+            if layer.bias is not None:
+                nn.init.constant_(layer.bias, 0)
+        elif type(layer) == nn.BatchNorm1d:
+            nn.init.normal_(layer.weight, 1.0, 0.02)
+            nn.init.constant_(layer.bias, 0)

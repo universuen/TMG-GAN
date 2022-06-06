@@ -18,8 +18,15 @@ if __name__ == '__main__':
     x = src.datasets.TrDataset().samples.cpu()
     y = src.datasets.TrDataset().labels.cpu()
 
-    x = torch.cat([x, tmg_gan.generate_samples(100)])
+    x = torch.cat([x, tmg_gan.generate_samples(1, 100)])
     y = torch.cat([y, torch.full([100], -1)])
+
+    x = torch.cat([x, tmg_gan.generate_samples(2, 100)])
+    y = torch.cat([y, torch.full([100], -2)])
+
+    x = torch.cat([x, tmg_gan.generate_samples(3, 100)])
+    y = torch.cat([y, torch.full([100], -3)])
+
     embedded_x = TSNE(
         learning_rate='auto',
         init='random',
