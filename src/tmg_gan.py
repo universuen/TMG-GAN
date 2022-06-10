@@ -1,7 +1,7 @@
 import random
 
 import torch
-from torch.nn.functional import cross_entropy
+from torch.nn.functional import cross_entropy, cosine_similarity
 from torch.utils.tensorboard import SummaryWriter
 
 from src import models, config, datasets
@@ -16,7 +16,6 @@ class TMGGAN:
             for _ in range(datasets.label_num)
         ]
         self.samples = dict()
-        self.writer = SummaryWriter()
 
     def fit(self, dataset):
         self._divide_samples(dataset)
@@ -44,14 +43,12 @@ class TMGGAN:
                 real_samples.append(self._get_target_samples(i, sample_num_per_class))
             real_labels = torch.tensor(real_labels, device=config.device)
             real_samples = torch.cat(real_samples)
-            c_loss: torch.Tensor = None
-            d_loss: torch.Tensor = None
-            g_loss: torch.Tensor = None
 
             # train C and D
             for _ in range(config.gan_config.cd_loop_num):
                 cd_optimizer.zero_grad()
                 score_real, predicted_labels = self.cd(real_samples)
+                hidden_real = self.cd.hidden_status
                 score_real = score_real.mean()
                 generated_samples = [
                     self.generators[i].generate_samples(sample_num_per_class)
@@ -67,14 +64,6 @@ class TMGGAN:
                 loss = d_loss + c_loss
                 loss.backward()
                 cd_optimizer.step()
-            self.writer.add_scalars(
-                'cd_loss',
-                {
-                    'c_loss': c_loss,
-                    'd_loss': d_loss,
-                },
-                e,
-            )
 
             # train G
             for _ in range(config.gan_config.g_loop_num):
@@ -85,18 +74,33 @@ class TMGGAN:
                     for i in range(datasets.label_num)
                 ]
                 generated_samples = torch.cat(generated_samples)
+                self.cd(real_samples)
+                hidden_real = self.cd.hidden_status
                 score_generated, predicted_labels = self.cd(generated_samples)
+                hidden_generated = self.cd.hidden_status
+                cd_hidden_loss = - cosine_similarity(hidden_real, hidden_generated).mean()
                 score_generated = score_generated.mean()
                 loss_label = cross_entropy(
                     input=predicted_labels,
                     target=real_labels,
                 )
-                g_loss = -score_generated + loss_label
+                g_hidden_losses = []
+                for i, _ in enumerate(self.generators):
+                    for j, _ in enumerate(self.generators):
+                        if i == j:
+                            continue
+                        else:
+                            g_hidden_losses.append(
+                                torch.dot(
+                                    self.generators[i].hidden_status.flatten(),
+                                    self.generators[j].hidden_status.flatten(),
+                                )
+                            )
+                g_hidden_loss = torch.mean(torch.stack(g_hidden_losses))
+                g_loss = -score_generated + loss_label + cd_hidden_loss + g_hidden_loss
                 g_loss.backward()
                 for i in range(datasets.label_num):
                     g_optimizers[i].step()
-            self.writer.add_scalar('g_loss', g_loss, e)
-        self.writer.close()
 
     def _divide_samples(self, dataset: datasets.TrDataset) -> None:
         for sample, label in dataset:

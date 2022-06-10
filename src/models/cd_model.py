@@ -30,6 +30,7 @@ class CDModel(nn.Module):
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         x = self.main_model(x)
+        self.hidden_status = x
         return self.d_last_layer(x), self.c_last_layer(x)
 
     @staticmethod
