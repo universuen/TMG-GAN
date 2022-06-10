@@ -11,13 +11,13 @@ class GeneratorModel(Model):
         self.z_size = z_size
         self.model = nn.Sequential(
             nn.Linear(z_size, 512),
-            nn.LayerNorm(512),
+            nn.BatchNorm1d(512),
             nn.LeakyReLU(0.2),
             nn.Linear(512, 128),
-            nn.LayerNorm(128),
+            nn.BatchNorm1d(128),
             nn.LeakyReLU(0.2),
             nn.Linear(128, 32),
-            nn.LayerNorm(32),
+            nn.BatchNorm1d(32),
             nn.LeakyReLU(0.2),
             nn.Linear(32, feature_num),
         )

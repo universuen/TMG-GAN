@@ -18,14 +18,20 @@ if __name__ == '__main__':
     x = src.datasets.TrDataset().samples.cpu()
     y = src.datasets.TrDataset().labels.cpu()
 
-    x = torch.cat([x, tmg_gan.generate_samples(1, 100)])
-    y = torch.cat([y, torch.full([100], -1)])
+    x = torch.cat([x, tmg_gan.generate_samples(0, 1000)])
+    y = torch.cat([y, torch.full([1000], 0.1)])
 
-    x = torch.cat([x, tmg_gan.generate_samples(2, 100)])
-    y = torch.cat([y, torch.full([100], -2)])
+    x = torch.cat([x, tmg_gan.generate_samples(1, 1000)])
+    y = torch.cat([y, torch.full([1000], 1.1)])
 
-    x = torch.cat([x, tmg_gan.generate_samples(3, 100)])
-    y = torch.cat([y, torch.full([100], -3)])
+    x = torch.cat([x, tmg_gan.generate_samples(2, 1000)])
+    y = torch.cat([y, torch.full([1000], 2.1)])
+
+    x = torch.cat([x, tmg_gan.generate_samples(3, 1000)])
+    y = torch.cat([y, torch.full([1000], 3.1)])
+
+    x = torch.cat([x, tmg_gan.generate_samples(4, 1000)])
+    y = torch.cat([y, torch.full([1000], 4.1)])
 
     embedded_x = TSNE(
         learning_rate='auto',
@@ -36,6 +42,7 @@ if __name__ == '__main__':
         x=embedded_x[:, 0],
         y=embedded_x[:, 1],
         hue=y,
-        palette="deep"
+        palette="deep",
+        alpha=0.3,
     )
     plt.show()

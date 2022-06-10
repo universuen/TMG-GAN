@@ -51,9 +51,7 @@ class TMGGAN:
             # train C and D
             for _ in range(config.gan_config.cd_loop_num):
                 cd_optimizer.zero_grad()
-
                 score_real, predicted_labels = self.cd(real_samples)
-
                 score_real = score_real.mean()
                 generated_samples = [
                     self.generators[i].generate_samples(sample_num_per_class)
