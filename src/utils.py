@@ -23,39 +23,48 @@ def set_random_state(seed: int = None) -> None:
 
 
 def prepare_datasets():
-    # tr_features = pd.read_csv(src.config.path_config.datasets / 'x_train.csv')
-    # tr_features = torch.tensor(tr_features.values, dtype=torch.float)
-    # src.datasets.tr_features = tr_features.to(src.config.device)
-    #
-    # tr_labels = pd.read_csv(src.config.path_config.datasets / 'y_train.csv')
-    # tr_labels = torch.tensor(tr_labels.values, dtype=torch.float).squeeze().argmax(1).type(torch.LongTensor)
-    # src.datasets.tr_labels = tr_labels.to(src.config.device)
-    #
-    # te_features = pd.read_csv(src.config.path_config.datasets / 'x_test.csv')
-    # te_features = torch.tensor(te_features.values, dtype=torch.float)
-    # src.datasets.te_features = te_features.to(src.config.device)
-    #
-    # te_labels = pd.read_csv(src.config.path_config.datasets / 'y_test.csv')
-    # te_labels = torch.tensor(te_labels.values, dtype=torch.float).squeeze().argmax(1).type(torch.LongTensor)
-    # src.datasets.te_labels = te_labels.to(src.config.device)
-    #
-    # src.datasets.feature_num = len(tr_features[0])
-    # src.datasets.label_num = max(tr_labels).item() + 1
+    tr_features = pd.read_csv(src.config.path_config.datasets / 'x_train.csv')
+    tr_features = torch.tensor(tr_features.values, dtype=torch.float)
+    src.datasets.tr_samples = tr_features
 
-    src.datasets.feature_num = 20
-    src.datasets.label_num = 5
-    features, labels = make_blobs(1000, n_features=src.datasets.feature_num, centers=src.datasets.label_num)
-    features = minmax_scale(features)
-    features = torch.tensor(features, dtype=torch.float)
-    labels = torch.tensor(labels).type(torch.LongTensor)
-    temp = train_test_split(
-        features,
-        labels,
-        test_size=0.1,
-    )
-    src.datasets.tr_features, src.datasets.te_features, src.datasets.tr_labels, src.datasets.te_labels = temp
+    tr_labels = pd.read_csv(src.config.path_config.datasets / 'y_train.csv')
+    tr_labels = torch.tensor(tr_labels.values, dtype=torch.float).squeeze().argmax(1).type(torch.LongTensor)
+    src.datasets.tr_labels = tr_labels
+
+    te_features = pd.read_csv(src.config.path_config.datasets / 'x_test.csv')
+    te_features = torch.tensor(te_features.values, dtype=torch.float)
+    src.datasets.te_samples = te_features
+
+    te_labels = pd.read_csv(src.config.path_config.datasets / 'y_test.csv')
+    te_labels = torch.tensor(te_labels.values, dtype=torch.float).squeeze().argmax(1).type(torch.LongTensor)
+    src.datasets.te_labels = te_labels
+
+    src.datasets.feature_num = len(tr_features[0])
+    src.datasets.label_num = max(tr_labels).item() + 1
+
+    # src.datasets.feature_num = 30
+    # src.datasets.label_num = 5
+    # # features, labels = make_blobs(1000, n_features=src.datasets.feature_num, centers=src.datasets.label_num)
+    # samples, labels = make_classification(
+    #     n_samples=1000,
+    #     n_features=src.datasets.feature_num,
+    #     n_informative=src.datasets.feature_num - 2,
+    #     n_redundant=0,
+    #     n_classes=5,
+    #     n_clusters_per_class=2,
+    #     weights=[0.5, 0.3, 0.1, 0.05, 0.05],
+    # )
+    # samples = minmax_scale(samples)
+    # samples = torch.tensor(samples, dtype=torch.float)
+    # labels = torch.tensor(labels).type(torch.LongTensor)
+    # temp = train_test_split(
+    #     samples,
+    #     labels,
+    #     test_size=0.1,
+    # )
+    # src.datasets.tr_samples, src.datasets.te_samples, src.datasets.tr_labels, src.datasets.te_labels = temp
 
 
 def turn_on_test_mode():
-    src.config.gan_config.epochs = 3
-    src.config.classifier_config.epochs = 3
+    src.config.gan_config.epochs = 1
+    src.config.classifier_config.epochs = 1

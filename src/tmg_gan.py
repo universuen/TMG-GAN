@@ -2,7 +2,6 @@ import random
 
 import torch
 from torch.nn.functional import cross_entropy, cosine_similarity
-from torch.utils.tensorboard import SummaryWriter
 
 from src import models, config, datasets
 
@@ -18,6 +17,11 @@ class TMGGAN:
         self.samples = dict()
 
     def fit(self, dataset):
+
+        self.cd.train()
+        for i in self.generators:
+            i.train()
+
         self._divide_samples(dataset)
         cd_optimizer = torch.optim.Adam(
             params=self.cd.parameters(),
@@ -97,10 +101,15 @@ class TMGGAN:
                                 )
                             )
                 g_hidden_loss = torch.mean(torch.stack(g_hidden_losses))
+                if e < 1000:
+                    cd_hidden_loss = 0
                 g_loss = -score_generated + loss_label + cd_hidden_loss + g_hidden_loss
                 g_loss.backward()
                 for i in range(datasets.label_num):
                     g_optimizers[i].step()
+        self.cd.eval()
+        for i in self.generators:
+            i.eval()
 
     def _divide_samples(self, dataset: datasets.TrDataset) -> None:
         for sample, label in dataset:
@@ -120,3 +129,16 @@ class TMGGAN:
 
     def generate_samples(self, target_label: int, num: int):
         return self.generators[target_label].generate_samples(num).cpu().detach()
+
+    def generate_qualified_samples(self, target_label: int, num: int):
+        result = []
+        patience = 10
+        while len(result) < num:
+            sample = self.generators[target_label].generate_samples(1)
+            label = torch.argmax(self.cd(sample)[1])
+            if label == target_label or patience == 0:
+                result.append(sample.cpu().detach())
+                patience = 10
+            else:
+                patience -= 1
+        return torch.cat(result)

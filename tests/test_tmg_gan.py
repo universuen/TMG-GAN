@@ -18,20 +18,9 @@ if __name__ == '__main__':
     x = src.datasets.TrDataset().samples.cpu()
     y = src.datasets.TrDataset().labels.cpu()
 
-    x = torch.cat([x, tmg_gan.generate_samples(0, 1000)])
-    y = torch.cat([y, torch.full([1000], 0.1)])
-
-    x = torch.cat([x, tmg_gan.generate_samples(1, 1000)])
-    y = torch.cat([y, torch.full([1000], 1.1)])
-
-    x = torch.cat([x, tmg_gan.generate_samples(2, 1000)])
-    y = torch.cat([y, torch.full([1000], 2.1)])
-
-    x = torch.cat([x, tmg_gan.generate_samples(3, 1000)])
-    y = torch.cat([y, torch.full([1000], 3.1)])
-
-    x = torch.cat([x, tmg_gan.generate_samples(4, 1000)])
-    y = torch.cat([y, torch.full([1000], 4.1)])
+    for i in range(src.datasets.label_num):
+        x = torch.cat([x, tmg_gan.generate_samples(i, len(tmg_gan.samples[i]))])
+        y = torch.cat([y, torch.full([len(tmg_gan.samples[i])], i + 0.1)])
 
     embedded_x = TSNE(
         learning_rate='auto',
@@ -45,4 +34,5 @@ if __name__ == '__main__':
         palette="deep",
         alpha=0.3,
     )
+    plt.savefig('tmg_gan.jpg')
     plt.show()
