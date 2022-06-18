@@ -7,8 +7,8 @@ import torch
 import src
 from src import Classifier, datasets, utils
 
-# dataset = 'KDDCUP99'
-dataset = 'NSL-KDD'
+dataset = 'KDDCUP99'
+# dataset = 'NSL-KDD'
 
 if __name__ == '__main__':
     # utils.turn_on_test_mode()

@@ -46,15 +46,14 @@ class GAN:
 
         for e in range(config.gan_config.epochs):
             print(f'\r{(e + 1) / config.gan_config.epochs: .2%}', end='')
-            sample_num_per_class = config.gan_config.batch_size // datasets.label_num
             for target_label in range(datasets.label_num):
                 # train D
                 for _ in range(config.gan_config.cd_loop_num):
                     d_optimizers[target_label].zero_grad()
-                    real_samples = self._get_target_samples(target_label, sample_num_per_class)
+                    real_samples = self._get_target_samples(target_label, config.gan_config.batch_size)
                     score_real = self.discriminators[target_label](real_samples)
                     loss_real = binary_cross_entropy(score_real, torch.ones_like(score_real))
-                    generated_samples = self.generators[target_label].generate_samples(sample_num_per_class)
+                    generated_samples = self.generators[target_label].generate_samples(config.gan_config.batch_size)
                     score_generated = self.discriminators[target_label](generated_samples)
                     loss_generated = binary_cross_entropy(
                         score_generated,
@@ -66,7 +65,7 @@ class GAN:
                 # train G
                 for _ in range(config.gan_config.g_loop_num):
                     g_optimizers[target_label].zero_grad()
-                    generated_samples = self.generators[target_label].generate_samples(sample_num_per_class)
+                    generated_samples = self.generators[target_label].generate_samples(config.gan_config.batch_size)
                     score_generated = self.discriminators[target_label](generated_samples)
                     g_loss = binary_cross_entropy(
                         score_generated,

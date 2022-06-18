@@ -38,75 +38,65 @@ class TMGGAN:
         ]
         for e in range(config.gan_config.epochs):
             print(f'\r{(e + 1) / config.gan_config.epochs: .2%}', end='')
-            # prepare data
-            sample_num_per_class = config.gan_config.batch_size // datasets.label_num
-            real_labels = []
-            real_samples = []
-            for i in range(datasets.label_num):
-                real_labels.extend([i for _ in range(sample_num_per_class)])
-                real_samples.append(self._get_target_samples(i, sample_num_per_class))
-            real_labels = torch.tensor(real_labels, device=config.device)
-            real_samples = torch.cat(real_samples)
 
-            # train C and D
-            for _ in range(config.gan_config.cd_loop_num):
-                cd_optimizer.zero_grad()
-                score_real, predicted_labels = self.cd(real_samples)
-                hidden_real = self.cd.hidden_status
-                score_real = score_real.mean()
-                generated_samples = [
-                    self.generators[i].generate_samples(sample_num_per_class)
-                    for i in range(datasets.label_num)
-                ]
-                generated_samples = torch.cat(generated_samples)
-                score_generated = self.cd(generated_samples)[0].mean()
-                d_loss = (score_generated - score_real) / 2
-                c_loss = cross_entropy(
-                    input=predicted_labels,
-                    target=real_labels,
-                )
-                loss = d_loss + c_loss
-                loss.backward()
-                cd_optimizer.step()
+            for target_label in range(datasets.label_num):
+                # train C and D
+                for _ in range(config.gan_config.cd_loop_num):
+                    cd_optimizer.zero_grad()
+                    real_samples = self._get_target_samples(target_label, config.gan_config.batch_size)
+                    score_real, predicted_labels = self.cd(real_samples)
+                    score_real = score_real.mean()
+                    generated_samples = self.generators[target_label].generate_samples(config.gan_config.batch_size)
+                    score_generated = self.cd(generated_samples)[0].mean()
+                    d_loss = (score_generated - score_real) / 2
+                    c_loss = cross_entropy(
+                        input=predicted_labels,
+                        target=torch.full([len(predicted_labels)], target_label, device=config.device),
+                    )
+                    loss = d_loss + c_loss
+                    loss.backward()
+                    cd_optimizer.step()
 
-            # train G
-            for _ in range(config.gan_config.g_loop_num):
-                for i in range(datasets.label_num):
-                    g_optimizers[i].zero_grad()
-                generated_samples = [
-                    self.generators[i].generate_samples(sample_num_per_class)
-                    for i in range(datasets.label_num)
-                ]
-                generated_samples = torch.cat(generated_samples)
-                self.cd(real_samples)
-                hidden_real = self.cd.hidden_status
-                score_generated, predicted_labels = self.cd(generated_samples)
-                hidden_generated = self.cd.hidden_status
-                cd_hidden_loss = - cosine_similarity(hidden_real, hidden_generated).mean()
-                score_generated = score_generated.mean()
-                loss_label = cross_entropy(
-                    input=predicted_labels,
-                    target=real_labels,
-                )
-                g_hidden_losses = []
-                for i, _ in enumerate(self.generators):
-                    for j, _ in enumerate(self.generators):
-                        if i == j:
-                            continue
-                        else:
-                            g_hidden_losses.append(
-                                torch.dot(
-                                    self.generators[i].hidden_status.flatten(),
-                                    self.generators[j].hidden_status.flatten(),
-                                )
+                # train G
+                for _ in range(config.gan_config.g_loop_num):
+                    g_optimizers[target_label].zero_grad()
+                    generated_samples = self.generators[target_label].generate_samples(config.gan_config.batch_size)
+                    real_samples = self._get_target_samples(target_label, config.gan_config.batch_size)
+                    self.cd(real_samples)
+                    hidden_real = self.cd.hidden_status
+                    score_generated, predicted_labels = self.cd(generated_samples)
+                    hidden_generated = self.cd.hidden_status
+                    cd_hidden_loss = - cosine_similarity(hidden_real, hidden_generated).mean()
+                    score_generated = score_generated.mean()
+                    loss_label = cross_entropy(
+                        input=predicted_labels,
+                        target=torch.full([len(predicted_labels)], target_label, device=config.device),
+                    )
+                    if e < 1000:
+                        cd_hidden_loss = 0
+                    g_loss = -score_generated + loss_label + cd_hidden_loss
+                    g_loss.backward()
+                    g_optimizers[target_label].step()
+            for i in g_optimizers:
+                i.zero_grad()
+            for i in self.generators:
+                i.generate_samples(3)
+            g_hidden_losses = []
+            for i, _ in enumerate(self.generators):
+                for j, _ in enumerate(self.generators):
+                    if i == j:
+                        continue
+                    else:
+                        g_hidden_losses.append(
+                            torch.dot(
+                                self.generators[i].hidden_status.flatten(),
+                                self.generators[j].hidden_status.flatten(),
                             )
-                g_hidden_loss = torch.mean(torch.stack(g_hidden_losses))
-                if e < 1000:
-                    cd_hidden_loss = 0
-                g_loss = -score_generated + loss_label + cd_hidden_loss + g_hidden_loss
-                g_loss.backward()
-                for i in range(datasets.label_num):
-                    g_optimizers[i].step()
+                        )
+            g_hidden_loss = torch.mean(torch.stack(g_hidden_losses))
+            g_hidden_loss.backward()
+            for i in g_optimizers:
+                i.step()
         print('')
         self.cd.eval()
         for i in self.generators:
