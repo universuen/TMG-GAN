@@ -57,7 +57,7 @@ class Classifier:
         self.model = self.model.cpu()
         predicted_labels = self.predict(dataset.samples.cpu())
         real_labels = dataset.labels.cpu()
-        self.confusion_matrix = metrics.multilabel_confusion_matrix(
+        self.confusion_matrix = metrics.confusion_matrix(
             y_true=real_labels,
             y_pred=predicted_labels,
             labels=[i for i in range(datasets.label_num)]

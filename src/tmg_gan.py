@@ -107,6 +107,7 @@ class TMGGAN:
                 g_loss.backward()
                 for i in range(datasets.label_num):
                     g_optimizers[i].step()
+        print('')
         self.cd.eval()
         for i in self.generators:
             i.eval()

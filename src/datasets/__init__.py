@@ -1,10 +1,11 @@
+import torch
 from torch import Tensor
 
 from src.datasets.tr_dataset import TrDataset
 from src.datasets.te_dataset import TeDataset
 
-tr_samples: Tensor = None
-tr_labels: Tensor = None
+tr_samples = torch.zeros([100, 10])
+tr_labels = torch.zeros([100])
 
 te_samples: Tensor = None
 te_labels: Tensor = None

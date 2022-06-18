@@ -15,18 +15,6 @@ if __name__ == '__main__':
 
     utils.set_random_state()
     utils.prepare_datasets(dataset)
-    utils.set_random_state()
-    clf = Classifier('test_0')
-    clf.fit(datasets.TrDataset())
-    clf.test(datasets.TeDataset())
-    print(clf.confusion_matrix)
-    print(clf.metrics)
-
-    # GAN
-    utils.set_random_state()
-    utils.prepare_datasets(dataset)
-    utils.set_random_state()
-
 
     # select features
     lens = (len(datasets.tr_samples), len(datasets.te_samples))
@@ -56,17 +44,9 @@ if __name__ == '__main__':
     utils.set_dataset_values()
     print(datasets.feature_num)
 
-    utils.set_random_state()
-    clf = Classifier('PCA')
-    clf.fit(datasets.TrDataset())
-    clf.test(datasets.TeDataset())
-    print(clf.confusion_matrix)
-    print(clf.metrics)
-
     src.utils.set_random_state()
     tmg_gan = src.TMGGAN()
     tmg_gan.fit(src.datasets.TrDataset())
-
     # count the max number of samples
     max_cnt = max([len(tmg_gan.samples[i]) for i in range(datasets.label_num)])
     # generate samples
@@ -77,16 +57,6 @@ if __name__ == '__main__':
             generated_labels = torch.full([cnt_generated], i)
             datasets.tr_samples = torch.cat([datasets.tr_samples, generated_samples])
             datasets.tr_labels = torch.cat([datasets.tr_labels, generated_labels])
-    with open('data.pkl', 'wb') as f:
-        pickle.dump(
-            (
-                datasets.tr_samples.numpy(),
-                datasets.tr_labels.numpy(),
-                datasets.te_samples.numpy(),
-                datasets.te_labels.numpy(),
-            ),
-            f,
-        )
 
     utils.set_random_state()
     clf = Classifier('TMG_GAN')
