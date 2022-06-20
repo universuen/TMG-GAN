@@ -58,6 +58,17 @@ if __name__ == '__main__':
             datasets.tr_samples = torch.cat([datasets.tr_samples, generated_samples])
             datasets.tr_labels = torch.cat([datasets.tr_labels, generated_labels])
 
+    with open('data.pkl', 'wb') as f:
+        pickle.dump(
+            (
+                datasets.tr_samples.numpy(),
+                datasets.tr_labels.numpy(),
+                datasets.te_samples.numpy(),
+                datasets.te_labels.numpy(),
+            ),
+            f,
+        )
+
     utils.set_random_state()
     clf = Classifier('TMG_GAN')
     clf.model = tmg_gan.cd
