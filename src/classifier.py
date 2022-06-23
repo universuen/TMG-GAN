@@ -85,3 +85,41 @@ class Classifier:
             y_pred=predicted_labels,
         )
         self.model = self.model.to(config.device)
+
+    def binary_test(self, dataset: datasets.TeDataset):
+        self.model = self.model.cpu()
+        predicted_labels = self.predict(dataset.samples.cpu())
+        real_labels = dataset.labels.cpu()
+        for idx, item in enumerate(predicted_labels):
+            if item > 0:
+                predicted_labels[idx] = 1
+        for idx, item in enumerate(real_labels):
+            if item > 0:
+                real_labels[idx] = 1
+        self.confusion_matrix = metrics.confusion_matrix(
+            y_true=real_labels,
+            y_pred=predicted_labels,
+        )
+        self.metrics['Precision'] = metrics.precision_score(
+            y_true=real_labels,
+            y_pred=predicted_labels,
+            average='macro',
+            zero_division=0,
+        )
+        self.metrics['Recall'] = metrics.recall_score(
+            y_true=real_labels,
+            y_pred=predicted_labels,
+            average='macro',
+            zero_division=0,
+        )
+        self.metrics['F1'] = metrics.f1_score(
+            y_true=real_labels,
+            y_pred=predicted_labels,
+            average='macro',
+            zero_division=0,
+        )
+        self.metrics['Accuracy'] = metrics.accuracy_score(
+            y_true=real_labels,
+            y_pred=predicted_labels,
+        )
+        self.model = self.model.to(config.device)

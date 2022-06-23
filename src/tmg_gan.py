@@ -39,7 +39,7 @@ class TMGGAN:
         for e in range(config.gan_config.epochs):
             print(f'\r{(e + 1) / config.gan_config.epochs: .2%}', end='')
 
-            for target_label in range(datasets.label_num):
+            for target_label in self.samples.keys():
                 # train C and D
                 for _ in range(config.gan_config.cd_loop_num):
                     cd_optimizer.zero_grad()
@@ -88,12 +88,12 @@ class TMGGAN:
                         continue
                     else:
                         g_hidden_losses.append(
-                            torch.dot(
-                                self.generators[i].hidden_status.flatten(),
-                                self.generators[j].hidden_status.flatten(),
+                            cosine_similarity(
+                                self.generators[i].hidden_status,
+                                self.generators[j].hidden_status,
                             )
                         )
-            g_hidden_loss = torch.mean(torch.stack(g_hidden_losses))
+            g_hidden_loss = torch.mean(torch.stack(g_hidden_losses)) / datasets.feature_num
             g_hidden_loss.backward()
             for i in g_optimizers:
                 i.step()

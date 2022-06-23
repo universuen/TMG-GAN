@@ -69,6 +69,19 @@ def prepare_datasets(name: str = None):
         src.datasets.tr_samples, src.datasets.te_samples, src.datasets.tr_labels, src.datasets.te_labels = temp
 
 
+def transfer_to_binary():
+    for idx, item in enumerate(src.datasets.tr_labels):
+        if item > 0:
+            src.datasets.tr_labels[idx] = 1
+    for idx, item in enumerate(src.datasets.te_labels):
+        if item > 0:
+            src.datasets.te_labels[idx] = 1
+
+
 def turn_on_test_mode():
+    src.datasets.tr_samples = src.datasets.tr_samples[:1000]
+    src.datasets.tr_labels = src.datasets.tr_labels[:1000]
+    src.datasets.te_samples = src.datasets.te_samples[:1000]
+    src.datasets.te_labels = src.datasets.te_labels[:1000]
     src.config.gan_config.epochs = 1
     src.config.classifier_config.epochs = 1

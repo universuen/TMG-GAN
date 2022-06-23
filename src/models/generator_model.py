@@ -21,7 +21,10 @@ class GeneratorModel(nn.Module):
 
         )
         self.hidden_status: torch.Tensor = None
-        self.last_layer = nn.Linear(32, feature_num)
+        self.last_layer = nn.Sequential(
+            nn.Linear(32, feature_num),
+            nn.Sigmoid(),
+        )
         self.apply(self._init_weights)
 
     def generate_samples(self, num: int) -> torch.Tensor:
