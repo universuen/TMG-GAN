@@ -8,7 +8,7 @@
 #SBATCH --gres=gpu:2
 #SBATCH --time=3:30:00
 
-./Scripts/activate
+conda activate tmg_gan
 
 cd $SLURM_SUBMIT_DIR
 
