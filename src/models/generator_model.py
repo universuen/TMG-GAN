@@ -2,6 +2,7 @@ import torch
 from torch import nn
 
 from src import config
+from src.utils import init_weights
 
 
 class GeneratorModel(nn.Module):
@@ -25,7 +26,7 @@ class GeneratorModel(nn.Module):
             nn.Linear(32, feature_num),
             nn.Sigmoid(),
         )
-        self.apply(self._init_weights)
+        self.apply(init_weights)
 
     def generate_samples(self, num: int) -> torch.Tensor:
         z = torch.randn(num, self.z_size, device=config.device)
@@ -36,12 +37,3 @@ class GeneratorModel(nn.Module):
         self.hidden_status = x
         return self.last_layer(x)
 
-    @staticmethod
-    def _init_weights(layer: nn.Module):
-        if type(layer) == nn.Linear:
-            nn.init.normal_(layer.weight, 0.0, 0.02)
-            if layer.bias is not None:
-                nn.init.constant_(layer.bias, 0)
-        elif type(layer) == nn.BatchNorm1d:
-            nn.init.normal_(layer.weight, 1.0, 0.02)
-            nn.init.constant_(layer.bias, 0)

@@ -2,6 +2,8 @@ import torch
 from torch import nn
 from torch.nn.utils.parametrizations import spectral_norm
 
+from src.utils import init_weights
+
 
 class SNGANDModel(nn.Module):
     def __init__(self, in_features: int):
@@ -19,17 +21,7 @@ class SNGANDModel(nn.Module):
             nn.LeakyReLU(0.2),
             spectral_norm(nn.Linear(16, 1)),
         )
-        self.apply(self._init_weights)
+        self.apply(init_weights)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         return self.model(x)
-
-    @staticmethod
-    def _init_weights(layer: nn.Module):
-        if type(layer) == nn.Linear:
-            nn.init.normal_(layer.weight, 0.0, 0.02)
-            if layer.bias is not None:
-                nn.init.constant_(layer.bias, 0)
-        elif type(layer) == nn.BatchNorm1d:
-            nn.init.normal_(layer.weight, 1.0, 0.02)
-            nn.init.constant_(layer.bias, 0)

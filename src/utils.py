@@ -3,6 +3,7 @@ import random
 import numpy as np
 import torch
 import pandas as pd
+from torch import nn
 from sklearn.datasets import make_classification, make_blobs
 from sklearn.preprocessing import minmax_scale
 from sklearn.model_selection import train_test_split
@@ -48,16 +49,16 @@ def prepare_datasets(name: str = None):
     else:
         src.datasets.feature_num = 30
         src.datasets.label_num = 5
-        # features, labels = make_blobs(1000, n_features=src.datasets.feature_num, centers=src.datasets.label_num)
-        samples, labels = make_classification(
-            n_samples=1000,
-            n_features=src.datasets.feature_num,
-            n_informative=src.datasets.feature_num - 2,
-            n_redundant=0,
-            n_classes=5,
-            n_clusters_per_class=2,
-            weights=[0.5, 0.3, 0.1, 0.05, 0.05],
-        )
+        samples, labels = make_blobs(1000, n_features=src.datasets.feature_num, centers=src.datasets.label_num)
+        # samples, labels = make_classification(
+        #     n_samples=1000,
+        #     n_features=src.datasets.feature_num,
+        #     n_informative=src.datasets.feature_num - 2,
+        #     n_redundant=0,
+        #     n_classes=5,
+        #     n_clusters_per_class=2,
+        #     weights=[0.5, 0.3, 0.1, 0.05, 0.05],
+        # )
         samples = minmax_scale(samples)
         samples = torch.tensor(samples, dtype=torch.float)
         labels = torch.tensor(labels).type(torch.LongTensor)
@@ -85,3 +86,13 @@ def turn_on_test_mode():
     src.datasets.te_labels = src.datasets.te_labels[:1000]
     src.config.gan_config.epochs = 1
     src.config.classifier_config.epochs = 1
+
+
+def init_weights(layer: nn.Module):
+    if type(layer) == nn.Linear:
+        nn.init.normal_(layer.weight, 0.0, 0.02)
+        if layer.bias is not None:
+            nn.init.constant_(layer.bias, 0)
+    elif type(layer) == nn.BatchNorm1d:
+        nn.init.normal_(layer.weight, 1.0, 0.02)
+        nn.init.constant_(layer.bias, 0)
