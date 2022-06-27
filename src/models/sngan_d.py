@@ -9,16 +9,27 @@ class SNGANDModel(nn.Module):
     def __init__(self, in_features: int):
         super().__init__()
         self.model = nn.Sequential(
+            nn.Flatten(),
             spectral_norm(nn.Linear(in_features, 1024)),
             nn.LeakyReLU(0.2),
+            nn.Dropout(0.3),
+
             spectral_norm(nn.Linear(1024, 512)),
             nn.LeakyReLU(0.2),
+            nn.Dropout(0.3),
+
             spectral_norm(nn.Linear(512, 128)),
             nn.LeakyReLU(0.2),
+            nn.Dropout(0.3),
+
             spectral_norm(nn.Linear(128, 32)),
             nn.LeakyReLU(0.2),
+            nn.Dropout(0.3),
+
             spectral_norm(nn.Linear(32, 16)),
             nn.LeakyReLU(0.2),
+            nn.Dropout(0.3),
+
             spectral_norm(nn.Linear(16, 1)),
         )
         self.apply(init_weights)

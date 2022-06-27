@@ -12,7 +12,7 @@ dataset = 'KDDCUP99'
 
 if __name__ == '__main__':
     utils.set_random_state()
-    utils.prepare_datasets(dataset)
+    # utils.prepare_datasets(dataset)
     # utils.turn_on_test_mode()
     # utils.transfer_to_binary()
 

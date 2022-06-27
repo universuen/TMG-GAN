@@ -14,7 +14,7 @@ WARNING: The random seed can only guarantee the reproducibility on the same comp
 seed = 0
 
 # device used for training
-device: str = 'cpu'
+device: str = 'auto'
 
 if device == 'auto':
     if torch.cuda.is_available():
