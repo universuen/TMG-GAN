@@ -1,6 +1,7 @@
 import random
 
 import torch
+from matplotlib import pyplot as plt
 
 from src import models, config, datasets
 
@@ -66,6 +67,20 @@ class SNGAN:
                     g_loss = - score_generated
                     g_loss.backward()
                     g_optimizers[target_label].step()
+                if e % 10 == 0:
+                    with torch.no_grad():
+                        for i in self.generators:
+                            i.eval()
+                        images = torch.cat([self.generate_samples(i, 10) for i in range(10)])
+                        for i in self.generators:
+                            i.train()
+                    f, axs = plt.subplots(10, 10)
+                    for i in range(10):
+                        for j in range(10):
+                            axs[i, j].imshow(images[i * 10 + j].permute(1, 2, 0))
+                            axs[i, j].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
+                    plt.savefig(config.path_config.gan_outs / f'sngan_{e}.jpg')
+                    plt.close(f)
         print()
         for i in self.discriminators:
             i.eval()

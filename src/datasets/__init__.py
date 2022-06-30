@@ -8,13 +8,14 @@ from src.datasets.te_dataset import TeDataset
 tf = transforms.Compose(
     [
         transforms.ToTensor(),
+        transforms.Resize(32),
         transforms.Normalize(mean=0, std=1),
     ]
 )
 
-tr_ds = datasets.MNIST(
+tr_ds = datasets.STL10(
     root=path_config.data,
-    train=True,
+    split='train',
     transform=tf,
     download=True
 )
@@ -22,12 +23,12 @@ tr_samples, tr_labels = [], []
 for i, j in tr_ds:
     tr_samples.append(i)
     tr_labels.append(j)
-tr_samples = torch.cat(tr_samples)
+tr_samples = torch.stack(tr_samples)
 tr_labels = torch.tensor(tr_labels)
 
-te_ds = datasets.MNIST(
+te_ds = datasets.STL10(
     root=path_config.data,
-    train=False,
+    split='test',
     transform=tf,
     download=True
 )
@@ -35,7 +36,7 @@ te_samples, te_labels = [], []
 for i, j in te_ds:
     te_samples.append(i)
     te_labels.append(j)
-te_samples = torch.cat(te_samples)
+te_samples = torch.stack(te_samples)
 te_labels = torch.tensor(te_labels)
 
 feature_num = len(tr_samples[0].flatten())

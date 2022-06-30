@@ -10,22 +10,27 @@ class GeneratorModel(nn.Module):
         super().__init__()
         self.z_size = z_size
         self.main_model = nn.Sequential(
-            nn.Linear(z_size, 256),
-            nn.BatchNorm1d(256),
+            # z_size * 1 * 1
+            nn.ConvTranspose2d(z_size, 64, 4, 1, 0),
+            nn.BatchNorm2d(64),
             nn.LeakyReLU(0.2),
-
-            nn.Linear(256, 512),
-            nn.BatchNorm1d(512),
+            # 64 * 4 * 4
+            nn.ConvTranspose2d(64, 32, 4, 2, 1),
+            nn.BatchNorm2d(32),
             nn.LeakyReLU(0.2),
-
-            nn.Linear(512, 1024),
-            nn.BatchNorm1d(1024),
+            # 32 * 8 * 8
+            nn.ConvTranspose2d(32, 16, 4, 2, 1),
+            nn.BatchNorm2d(16),
             nn.LeakyReLU(0.2),
+            # 16 * 16 * 16
         )
         self.hidden_status: torch.Tensor = None
         self.last_layer = nn.Sequential(
-            nn.Linear(1024, feature_num),
-            nn.Sigmoid(),
+            nn.ConvTranspose2d(16, 3, 4, 2, 1),
+            nn.BatchNorm2d(3),
+            nn.LeakyReLU(0.2),
+            # 3 * 32 * 32
+            nn.Tanh()
         )
         self.apply(init_weights)
 
@@ -34,7 +39,8 @@ class GeneratorModel(nn.Module):
         return self.forward(z)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = x.view(-1, self.z_size, 1, 1)
         x = self.main_model(x)
         self.hidden_status = x
-        return torch.reshape(self.last_layer(x), [-1, 28, 28])
+        return torch.reshape(self.last_layer(x), [-1, 3, 32, 32])
 

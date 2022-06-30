@@ -2,6 +2,7 @@ import random
 
 import torch
 from torch.nn.functional import cross_entropy, cosine_similarity
+from matplotlib import pyplot as plt
 
 from src import models, config, datasets
 
@@ -97,6 +98,22 @@ class TMGGAN:
             g_hidden_loss.backward()
             for i in g_optimizers:
                 i.step()
+
+            if e % 10 == 0:
+                with torch.no_grad():
+                    for i in self.generators:
+                        i.eval()
+                    images = torch.cat([self.generate_samples(i, 10) for i in range(10)])
+                    for i in self.generators:
+                        i.train()
+                f, axs = plt.subplots(10, 10)
+                for i in range(10):
+                    for j in range(10):
+                        axs[i, j].imshow(images[i * 10 + j].permute(1, 2, 0))
+                        axs[i, j].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
+                plt.savefig(config.path_config.gan_outs / f'tmg_{e}.jpg')
+                plt.close(f)
+
         print('')
         self.cd.eval()
         for i in self.generators:
