@@ -7,54 +7,29 @@ import torch
 import src
 from src import Classifier, datasets, utils
 
-dataset = 'KDDCUP99'
+dataset = 'CICIDS2017'
+# dataset = 'KDDCUP99'
 # dataset = 'NSL-KDD'
 
 if __name__ == '__main__':
     utils.set_random_state()
     utils.prepare_datasets(dataset)
-    # utils.turn_on_test_mode()
-    # utils.transfer_to_binary()
-
-    # # select features
-    # lens = (len(datasets.tr_samples), len(datasets.te_samples))
-    # samples = torch.cat(
-    #     [
-    #         datasets.tr_samples,
-    #         datasets.te_samples,
-    #     ]
-    # )
-    # labels = torch.cat(
-    #     [
-    #         datasets.tr_labels,
-    #         datasets.te_labels,
-    #     ]
-    # )
-    # from sklearn.decomposition import PCA
-    # from sklearn.preprocessing import minmax_scale
-    #
-    # pca = PCA(n_components=25)
-    # samples = torch.from_numpy(
-    #     minmax_scale(
-    #         pca.fit_transform(samples, labels)
-    #     )
-    # ).float()
-    # samples = (samples - samples.min())
-    # datasets.tr_samples, datasets.te_samples = torch.split(samples, lens)
-    # utils.set_dataset_values()
-    # print(datasets.feature_num)
+    utils.turn_on_test_mode()
 
     src.utils.set_random_state()
-    tmg_gan = src.TMGGAN()
+    tmg_gan = src.TMGGAN('Linear')
     tmg_gan.fit(src.datasets.TrDataset())
-    # count the max number of samples
-    max_cnt = max([len(tmg_gan.samples[i]) for i in tmg_gan.samples.keys()])
-    # generate samples
-    for i in tmg_gan.samples.keys():
-        cnt_generated = max_cnt - len(tmg_gan.samples[i])
-        if cnt_generated > 0:
-            generated_samples = tmg_gan.generate_qualified_samples(i, cnt_generated)
-            generated_labels = torch.full([cnt_generated], i)
+    # generate
+    cnt = [len(tmg_gan.samples[i]) for i in range(datasets.label_num)]
+    print(cnt)
+    delta = cnt[0] - sum(cnt[1:])
+    if delta <= 0:
+        print('no need to generate')
+    else:
+        num = delta // (datasets.label_num - 1)
+        for i in range(1, datasets.label_num):
+            generated_samples = tmg_gan.generate_samples(i, num)
+            generated_labels = torch.full([num], i)
             datasets.tr_samples = torch.cat([datasets.tr_samples, generated_samples])
             datasets.tr_labels = torch.cat([datasets.tr_labels, generated_labels])
 
@@ -68,15 +43,3 @@ if __name__ == '__main__':
             ),
             f,
         )
-
-    utils.set_random_state()
-    clf = Classifier('TMG_GAN')
-    clf.model = tmg_gan.cd
-    clf.fit(datasets.TrDataset())
-    torch.cuda.empty_cache()
-    clf.test(datasets.TeDataset())
-    print(clf.confusion_matrix)
-    print(clf.metrics)
-    clf.binary_test(datasets.TeDataset())
-    print(clf.confusion_matrix)
-    print(clf.metrics)

@@ -35,7 +35,10 @@ def prepare_datasets(name: str = None):
         src.datasets.tr_samples = tr_features
 
         tr_labels = pd.read_csv(src.config.path_config.datasets / name / 'y_train.csv')
-        tr_labels = torch.tensor(tr_labels.values, dtype=torch.float).squeeze().argmax(1).type(torch.LongTensor)
+        try:
+            tr_labels = torch.tensor(tr_labels.values, dtype=torch.float).squeeze().argmax(1).type(torch.LongTensor)
+        except IndexError:
+            tr_labels = torch.tensor(tr_labels.values, dtype=torch.float).squeeze().type(torch.LongTensor)
         src.datasets.tr_labels = tr_labels
 
         te_features = pd.read_csv(src.config.path_config.datasets / name / 'x_test.csv')
@@ -43,7 +46,10 @@ def prepare_datasets(name: str = None):
         src.datasets.te_samples = te_features
 
         te_labels = pd.read_csv(src.config.path_config.datasets / name / 'y_test.csv')
-        te_labels = torch.tensor(te_labels.values, dtype=torch.float).squeeze().argmax(1).type(torch.LongTensor)
+        try:
+            te_labels = torch.tensor(te_labels.values, dtype=torch.float).squeeze().argmax(1).type(torch.LongTensor)
+        except IndexError:
+            te_labels = torch.tensor(te_labels.values, dtype=torch.float).squeeze().type(torch.LongTensor)
         src.datasets.te_labels = te_labels
         set_dataset_values()
     else:

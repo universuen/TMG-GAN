@@ -8,13 +8,16 @@ from src import models, config, datasets
 
 class TMGGAN:
 
-    def __init__(self):
+    def __init__(self, name: str, load: bool = False):
+        self.name = name
         self.cd = models.CDModel(datasets.feature_num, datasets.label_num).to(config.device)
         self.generators = [
             models.GeneratorModel(config.gan_config.z_size, datasets.feature_num).to(config.device)
             for _ in range(datasets.label_num)
         ]
         self.samples = dict()
+        if load:
+            self._load_models()
 
     def fit(self, dataset):
 
@@ -101,6 +104,7 @@ class TMGGAN:
         self.cd.eval()
         for i in self.generators:
             i.eval()
+        self._save_models()
 
     def _divide_samples(self, dataset: datasets.TrDataset) -> None:
         for sample, label in dataset:
@@ -117,6 +121,24 @@ class TMGGAN:
                 k=num,
             )
         )
+
+    def _load_models(self):
+        states = torch.load(config.path_config.models / f'tmg_{self.name}.pt')
+        self.cd.load_state_dict(states['cd'])
+        self.cd.eval()
+        for i in range(datasets.label_num):
+            self.generators[i].load_state_dict(states[f'g_{i}'])
+            self.generators[i].eval()
+        self.samples = states['samples']
+
+    def _save_models(self):
+        states = {
+            'cd': self.cd.state_dict(),
+        }
+        for i, g in enumerate(self.generators):
+            states[f'g_{i}'] = g.state_dict()
+        states['samples'] = self.samples
+        torch.save(states, config.path_config.models / f'tmg_{self.name}.pt')
 
     def generate_samples(self, target_label: int, num: int):
         return self.generators[target_label].generate_samples(num).cpu().detach()

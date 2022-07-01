@@ -11,7 +11,7 @@ dataset = 'KDDCUP99'
 # dataset = 'NSL-KDD'
 
 if __name__ == '__main__':
-    # utils.turn_on_test_mode()
+    utils.turn_on_test_mode()
 
     utils.set_random_state()
     utils.prepare_datasets(dataset)
