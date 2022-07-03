@@ -28,7 +28,7 @@ if __name__ == '__main__':
     else:
         num = delta // (datasets.label_num - 1)
         for i in range(1, datasets.label_num):
-            generated_samples = tmg_gan.generate_samples(i, num)
+            generated_samples = tmg_gan.generate_qualified_samples(i, num)
             generated_labels = torch.full([num], i)
             datasets.tr_samples = torch.cat([datasets.tr_samples, generated_samples])
             datasets.tr_labels = torch.cat([datasets.tr_labels, generated_labels])
