@@ -8,8 +8,7 @@ from src import models, config, datasets
 
 class TMGGAN:
 
-    def __init__(self, name: str, load: bool = False):
-        self.name = name
+    def __init__(self, load: bool = False):
         self.cd = models.CDModel(datasets.feature_num, datasets.label_num).to(config.device)
         self.generators = [
             models.GeneratorModel(config.gan_config.z_size, datasets.feature_num).to(config.device)
@@ -26,6 +25,7 @@ class TMGGAN:
             i.train()
 
         self._divide_samples(dataset)
+
         cd_optimizer = torch.optim.Adam(
             params=self.cd.parameters(),
             lr=config.gan_config.cd_lr,
@@ -77,7 +77,7 @@ class TMGGAN:
                     )
                     if e < 1000:
                         cd_hidden_loss = 0
-                    g_loss = -score_generated + loss_label + cd_hidden_loss
+                    g_loss = -score_generated + loss_label  ###
                     g_loss.backward()
                     g_optimizers[target_label].step()
             for i in g_optimizers:
@@ -123,7 +123,7 @@ class TMGGAN:
         )
 
     def _load_models(self):
-        states = torch.load(config.path_config.models / f'tmg_{self.name}.pt')
+        states = torch.load(config.path_config.models / 'tmg.pt')
         self.cd.load_state_dict(states['cd'])
         self.cd.eval()
         for i in range(datasets.label_num):
@@ -138,7 +138,7 @@ class TMGGAN:
         for i, g in enumerate(self.generators):
             states[f'g_{i}'] = g.state_dict()
         states['samples'] = self.samples
-        torch.save(states, config.path_config.models / f'tmg_{self.name}.pt')
+        torch.save(states, config.path_config.models / 'tmg.pt')
 
     def generate_samples(self, target_label: int, num: int):
         return self.generators[target_label].generate_samples(num).cpu().detach()

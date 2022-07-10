@@ -91,7 +91,7 @@ def turn_on_test_mode():
     src.datasets.te_samples = src.datasets.te_samples[:1000]
     src.datasets.te_labels = src.datasets.te_labels[:1000]
     src.config.gan_config.epochs = 1
-    src.config.classifier_config.epochs = 1
+
 
 
 def init_weights(layer: nn.Module):

@@ -9,3 +9,6 @@ __pycache__/
 tests/runs/
 
 *.pkl
+*.txt
+*.png
+*.csv

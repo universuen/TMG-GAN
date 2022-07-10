@@ -1,5 +1,5 @@
 epochs: int = 5000
-batch_size: int = 128
+batch_size: int = 32
 
 z_size: int = 128
 
