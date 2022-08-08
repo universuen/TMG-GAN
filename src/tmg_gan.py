@@ -9,6 +9,7 @@ from src import models, config, datasets
 class TMGGAN:
 
     def __init__(self):
+        self.name = 'TMG-GAN'
         self.cd = models.CDModel(datasets.feature_num, datasets.label_num).to(config.device)
         self.generators = [
             models.GeneratorModel(config.gan_config.z_size, datasets.feature_num).to(config.device)
@@ -21,8 +22,8 @@ class TMGGAN:
         self.cd.train()
         for i in self.generators:
             i.train()
-
-        self._divide_samples(dataset)
+        if len(self.samples) == 0:
+            self._divide_samples(dataset)
         cd_optimizer = torch.optim.Adam(
             params=self.cd.parameters(),
             lr=config.gan_config.cd_lr,
@@ -79,18 +80,21 @@ class TMGGAN:
                     g_optimizers[target_label].step()
             for i in g_optimizers:
                 i.zero_grad()
-            for i in self.generators:
-                i.generate_samples(3)
+            f = []
+            for i in range(datasets.label_num):
+                samples = self.generators[i].generate_samples(3)
+                self.cd(samples)
+                f.append(self.cd.hidden_status)
             g_hidden_losses = []
-            for i, _ in enumerate(self.generators):
-                for j, _ in enumerate(self.generators):
+            for i in range(datasets.label_num):
+                for j in range(datasets.label_num):
                     if i == j:
                         continue
                     else:
                         g_hidden_losses.append(
                             cosine_similarity(
-                                self.generators[i].hidden_status,
-                                self.generators[j].hidden_status,
+                                f[i],
+                                f[j],
                             )
                         )
             g_hidden_loss = torch.mean(torch.stack(g_hidden_losses)) / datasets.feature_num

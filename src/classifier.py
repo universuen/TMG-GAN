@@ -24,7 +24,7 @@ class Classifier:
     def fit(self, dataset: datasets.TrDataset):
         self.model.train()
         self.logger.info('Started training')
-        self.logger.debug(f'Using device: {config.device}')
+        self.logger.debug(f'Using device: { config.device}')
         optimizer = Adam(
             params=self.model.parameters(),
             lr=config.classifier_config.lr,
@@ -32,7 +32,7 @@ class Classifier:
         dl = DataLoader(dataset, config.classifier_config.batch_size, shuffle=True)
         for e in range(config.classifier_config.epochs):
             for idx, (samples, labels) in enumerate(dl):
-                print(f'\repoch {e + 1} / {config.classifier_config.epochs}: {(idx + 1) / len(dl): .2%}', end='')
+                print(f'\repoch {e + 1} / { config.classifier_config.epochs}: {(idx + 1) / len(dl): .2%}', end='')
                 self.model.zero_grad()
                 prediction = self.model(samples)[1]
                 loss = cross_entropy(

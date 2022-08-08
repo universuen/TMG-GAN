@@ -34,5 +34,5 @@ if __name__ == '__main__':
         palette="deep",
         alpha=0.3,
     )
-    plt.savefig('gan.jpg')
+    plt.savefig('gan_bk.jpg')
     plt.show()

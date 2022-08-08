@@ -4,7 +4,7 @@ import numpy as np
 import torch
 import pandas as pd
 from torch import nn
-from sklearn.datasets import make_classification, make_blobs
+from sklearn.datasets import  make_blobs
 from sklearn.preprocessing import minmax_scale
 from sklearn.model_selection import train_test_split
 
@@ -48,7 +48,7 @@ def prepare_datasets(name: str = None):
         set_dataset_values()
     else:
         src.datasets.feature_num = 30
-        src.datasets.label_num = 5
+        src.datasets.label_num = 6
         samples, labels = make_blobs(1000, n_features=src.datasets.feature_num, centers=src.datasets.label_num)
         # samples, labels = make_classification(
         #     n_samples=1000,
